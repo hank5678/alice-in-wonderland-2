@@ -3,12 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "json-server": "json-server --watch db.json --port 3000"
   },
   "dependencies": {
+    "axios": "^1.2.2",
     "vue": "^3.2.45",
     "vue-uuid": "^3.0.0"
   },
@@ -18,6 +20,7 @@
     "@vue/eslint-config-prettier": "^7.0.0",
     "eslint": "^8.22.0",
     "eslint-plugin-vue": "^9.3.0",
+    "json-server": "^0.17.1",
     "prettier": "^2.7.1",
     "vite": "^4.0.0"
   }
