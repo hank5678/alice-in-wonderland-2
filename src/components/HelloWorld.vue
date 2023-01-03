@@ -1,22 +1,21 @@
 <!-- eslint-disable prettier/prettier -->
 <template>
   <div class="todobox">
-    <h1 style="margin-top: 15px">To-Do List</h1>
+    <h1 class="title" >To-Do List</h1>
     <div style="margin-top: 15px">
       <input class="todoinput" v-model="userinput" placeholder="Enter a new task" v-on:keyup.enter="SendStraSearch()" />
     </div>
     <div>
-      <div class="task" v-for="(todolist, index) in todolists.todo" :key="todolist" style="margin-top: 15px">
+      <div class="task" v-for="todolist in todolists" :key="todolist.id" style="margin-top: 15px">
         <input
           class="todoinput"
           @click="checked(todolist)"
-          :class="todolist.status == true ? 'checked' : ''"
-          v-model="todolists.todo[index].title"
-          placeholder="Enter a new task"
+          :class="{checked:todolist.status}"
+          v-model="todolist.title"
           readonly="readonly"
           
         />
-        <i class="checkmark fa-solid fa-check" v-if="todolist.status==true"></i>
+        <i class="checkmark fa-solid fa-check" v-if="todolist.status"></i>
         <i class="xmark fa-regular fa-circle-xmark" @click="remove(todolist)"></i>
       </div>
     </div>
@@ -29,35 +28,43 @@
 
 <script setup>
 import { ref } from "vue"
-import { reactive } from "vue"
+
 
 // import logo from "../assets/logo.svg"
 import { uuid } from "vue-uuid"
 
 let userinput = ref("")
-let todolists = reactive({
-  todo: []
-})
+let todolists=ref([])
+
 function SendStraSearch() {
-  todolists.todo.push({
+  // userinput.value.push({
+  //   id:uuid.v4(),
+  //   title:userinput.value,
+  //   status:false
+
+  // })
+  todolists.value.push(
+  {
     id: uuid.v4(),
     title: userinput.value,
     status: false
   })
+  userinput.value=''
 }
 
 function remove(todolist) {
-  todolists.todo = todolists.todo.filter((x) => x.id != todolist.id)
+  todolists.value= todolists.value.filter((x) => x.id != todolist.id)
 }
 
 function checked(todolist) {
   console.log(todolist.status)
-  if (todolist.status == true) {
-    console.log(todolist.status + "11111")
-    todolist.status = false
-  } else {
-    todolist.status = true
-  }
+  // if (todolist.status == true) {
+   
+  //   todolist.status = false
+  // } else {
+  //   todolist.status = true
+  // }
+  todolist.status= !todolist.status
 }
 </script>
 
@@ -68,6 +75,10 @@ p {
 img {
   width: 48px;
 }
+
+.title{
+ margin-top: 15px
+}
 .todobox {
   box-shadow: 0 0 1rem rgb(0 0 0 / 50%);
   width: 20%;
@@ -76,7 +87,7 @@ img {
   border-radius: 1rem;
 }
 .todoinput {
-  width:75%;
+  width: 75%;
   padding: 0.5rem;
   border-radius: 4px;
   border: 1px solid rgb(231, 225, 225);
@@ -96,12 +107,11 @@ img {
   top: 10px;
   color: red;
 }
-.checkmark{
+.checkmark {
   position: absolute;
   left: 28px;
   top: 10px;
-  color:#41b883
-
+  color: #41b883;
 }
 .checked {
   text-decoration: line-through;
