@@ -1,4 +1,3 @@
-<!-- eslint-disable prettier/prettier -->
 <template>
   <div class="todobox">
     <h1 class="title" >To-Do List</h1>
@@ -8,12 +7,11 @@
     <div>
       <div class="task" v-for="todolist in todolists" :key="todolist.id" style="margin-top: 15px">
         <input
-          class="todoinput"
+          class="todoinput1"
           @click="checked(todolist)"
           :class="{checked:todolist.status}"
           v-model="todolist.title"
           readonly="readonly"
-          
         />
         <i class="checkmark fa-solid fa-check" v-if="todolist.status"></i>
         <i class="xmark fa-regular fa-circle-xmark" @click="remove(todolist)"></i>
@@ -28,44 +26,40 @@
 
 <script setup>
 import { ref } from "vue"
-
-
-// import logo from "../assets/logo.svg"
+import axios from 'axios'
 import { uuid } from "vue-uuid"
 
 let userinput = ref("")
-let todolists=ref([])
-
+let todolists =ref([])
 function SendStraSearch() {
-  // userinput.value.push({
-  //   id:uuid.v4(),
-  //   title:userinput.value,
-  //   status:false
-
-  // })
-  todolists.value.push(
-  {
-    id: uuid.v4(),
-    title: userinput.value,
-    status: false
-  })
-  userinput.value=''
+ let data={
+  id:uuid.v4(),
+  title:userinput.value,
+  status:false
+ }
+ axios.post('http://localhost:3000/todos',data).then(x=>{
+  todolists.value.push(data);
+  console.log(x)
+ })
+ 
 }
 
 function remove(todolist) {
-  todolists.value= todolists.value.filter((x) => x.id != todolist.id)
+  axios.delete(`http://localhost:3000/todos/${todolist.id}`).then(x=>{
+    todolists.value=todolists.value.filter(x=>x.id!=todolist.id)
+  })
 }
 
 function checked(todolist) {
-  console.log(todolist.status)
-  // if (todolist.status == true) {
-   
-  //   todolist.status = false
-  // } else {
-  //   todolist.status = true
-  // }
-  todolist.status= !todolist.status
+  todolist.status=!todolist.status
+  axios.put(`http://localhost:3000/todos/${todolist.id}`,todolist).then(x=>{
+  console.log(x)
+})
 }
+axios.get('http://localhost:3000/todos')
+.then(res=>{
+  todolists.value=res.data
+})
 </script>
 
 <style scoped>
@@ -95,6 +89,13 @@ img {
   outline: none;
   padding-left: 38px;
 }
+.todoinput1{width: 75%;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgb(231, 225, 225);
+  font-size: 1rem;
+  outline: none;
+  padding-left: 38px;}
 .task {
   position: relative;
 }
@@ -118,3 +119,4 @@ img {
   color: #41b883;
 }
 </style>
+

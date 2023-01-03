@@ -1,0 +1,14 @@
+{
+  "todos": [
+    {
+      "id": "5da12eb6-f1c8-4ad5-ac0b-e5e3e062a36e",
+      "title": "abc",
+      "status": true
+    },
+    {
+      "id": "ae279616-4a60-4c57-8371-90a3ea0c29ca",
+      "title": "def",
+      "status": false
+    }
+  ]
+}
