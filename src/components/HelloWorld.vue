@@ -5,16 +5,15 @@
       <input class="todoinput" v-model="userinput" placeholder="Enter a new task" v-on:keyup.enter="SendStraSearch()" />
     </div>
     <div>
-      <div class="task" v-for="(todolist, index) in todolists.todo" :key="todolist" style="margin-top: 15px">
+      <div class="task" v-for="todolist in todolists" :key="todolist.id" style="margin-top: 15px">
         <input
-          class="todoinput"
+          class="todoinput1"
           @click="checked(todolist)"
-          :class="todolist.status == true ? 'checked' : ''"
-          v-model="todolists.todo[index].title"
-          placeholder="Enter a new task"
+          :class="{checked:todolist.status}"
+          v-model="todolist.title"
           readonly="readonly"
         />
-        <i class="checkmark fa-solid fa-check" v-if="todolist.status == true"></i>
+        <i class="checkmark fa-solid fa-check" v-if="todolist.status"></i>
         <i class="xmark fa-regular fa-circle-xmark" @click="remove(todolist)"></i>
       </div>
     </div>
@@ -27,36 +26,51 @@
 
 <script setup>
 import { ref } from "vue"
-import { reactive } from "vue"
+import axios from 'axios'
+
 
 // import logo from "../assets/logo.svg"
 import { uuid } from "vue-uuid"
 
 let userinput = ref("")
-let todolists = reactive({
-  todo: []
-})
+let todolists =ref([])
 function SendStraSearch() {
-  todolists.todo.push({
-    id: uuid.v4(),
-    title: userinput.value,
-    status: false
-  })
+console.log('AAAAAA')
+ let data={
+  id:uuid.v4(),
+  title:userinput.value,
+  status:false
+ }
+ axios.post('http://localhost:3000/todos',data).then(x=>{
+  todolists.value.push(data);
+  console.log(x)
+ })
+ 
 }
 
 function remove(todolist) {
-  todolists.todo = todolists.todo.filter((x) => x.id != todolist.id)
+  axios.delete(`http://localhost:3000/todos/${todolist.id}`).then(x=>{
+    todolists.value=todolists.value.filter(x=>x.id!=todolist.id)
+  })
 }
 
 function checked(todolist) {
+
   console.log(todolist.status)
-  if (todolist.status == true) {
-    console.log(todolist.status + "11111")
-    todolist.status = false
-  } else {
-    todolist.status = true
-  }
+todolist.status=!todolist.status
+axios.put(`http://localhost:3000/todos/${todolist.id}`,todolist).then(x=>{
+console.log(x)
+})
 }
+axios.get('http://localhost:3000/todos')
+.then(res=>{
+  todolists.value=res.data
+})
+
+
+
+
+
 </script>
 
 <style scoped>
@@ -82,6 +96,13 @@ img {
   outline: none;
   padding-left: 38px;
 }
+.todoinput1{width: 75%;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgb(231, 225, 225);
+  font-size: 1rem;
+  outline: none;
+  padding-left: 38px;}
 .task {
   position: relative;
 }
