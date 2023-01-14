@@ -10,6 +10,7 @@
     "json-server": "json-server --watch db.json --port 3000"
   },
   "dependencies": {
+    "ant-design-vue": "^3.2.15",
     "axios": "^1.2.2",
     "vue": "^3.2.45",
     "vue-uuid": "^3.0.0"
