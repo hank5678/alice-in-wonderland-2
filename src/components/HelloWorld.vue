@@ -1,42 +1,55 @@
 <template>
   <div class="todobox">
-    <div class="pagenate">
-      <a-pagination :current="current" :total="total" :pageSize="pageSize" @change="change" />
-    </div>
-
-    <h1 class="title">To-Do List</h1>
-    <div style="margin-top: 15px">
-      <input class="todoinput" v-model="userinput" placeholder="Enter a new task" v-on:keyup.enter="add()" />
-    </div>
-    <div>
-      <div class="task" v-for="todo in todolist" :key="todo.id" style="margin-top: 15px">
-        <input class="todoinput1" @click="checked(todo)" :class="{ checked: todo.status }" v-model="todo.title" readonly="readonly" />
-        <i class="checkmark fa-solid fa-check" v-if="todo.status"></i>
-        <i class="xmark fa-regular fa-circle-xmark" @click="remove(todo)"></i>
+    <a-spin :spinning="loading">
+      <div class="pagenate">
+        <a-pagination :current="current" :total="total" :pageSize="pageSize" @change="change" />
       </div>
-    </div>
 
-    <div style="margin-top: 15px">
-      <img src="@/assets/logo.svg" alt="" />
-    </div>
+      <h1 class="title">To-Do List</h1>
+      <div style="margin-top: 15px">
+        <input class="todoinput" v-model="userinput" placeholder="Enter a new task" v-on:keyup.enter="add()" />
+      </div>
+      <div>
+        <div class="task" v-for="todo in todolist" :key="todo.id" style="margin-top: 15px">
+          <input class="todoinput1" @click="checked(todo)" :class="{ checked: todo.status }" v-model="todo.title" readonly="readonly" />
+          <i class="checkmark fa-solid fa-check" v-if="todo.status"></i>
+          <i class="xmark fa-regular fa-circle-xmark" @click="remove(todo)"></i>
+        </div>
+      </div>
+
+      <div style="margin-top: 15px">
+        <img src="@/assets/logo.svg" alt="" />
+      </div>
+    </a-spin>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, computed, onMounted } from "vue"
 import axios from "@/utils/axios"
+import useLoading from "@/composables/useLoading"
 
 let current = ref(1) //預設當前頁數在第一頁
 let todolist = ref([])
 let userinput = ref("")
 let total = ref(0)
 let pageSize = 5
+let getTodoLoading = useLoading()
+let addTodoLoading = useLoading()
+let removeLoading = useLoading()
+let checkedLoading = useLoading()
+
+let loading = computed(() => {
+  return getTodoLoading.status.value || addTodoLoading.status.value || removeLoading.status.value || checkedLoading.status.value
+})
 
 let getTodoList = (page, pageSize) => {
-  axios.get("/todos", { params: { _page: page, _limit: pageSize } }).then((res) => {
-    todolist.value = res.data
-    total.value = res.headers["x-total-count"]
-  })
+  getTodoLoading.load(
+    axios.get("/todos", { params: { _page: page, _limit: pageSize } }).then((res) => {
+      todolist.value = res.data
+      total.value = Number(res.headers["x-total-count"])
+    })
+  )
 }
 
 function change(page, pageSize) {
@@ -53,26 +66,32 @@ function add() {
     title: userinput.value,
     status: false
   }
-  axios.post("/todos", data).then(() => {
-    userinput.value = ""
-    getTodoList(current.value, pageSize)
-  })
+  addTodoLoading.load(
+    axios.post("/todos", data).then(() => {
+      userinput.value = ""
+      getTodoList(current.value, pageSize)
+    })
+  )
 }
 
 function remove(todo) {
-  axios.delete(`/todos/${todo.id}`).then(() => {
-    getTodoList(current.value, pageSize)
-  })
+  removeLoading.load(
+    axios.delete(`/todos/${todo.id}`).then(() => {
+      getTodoList(current.value, pageSize)
+    })
+  )
 }
 
 function checked(todo) {
-  axios
-    .patch(`/todos/${todo.id}`, {
-      status: !todo.status
-    })
-    .then(() => {
-      getTodoList(current.value, pageSize)
-    })
+  checkedLoading.load(
+    axios
+      .patch(`/todos/${todo.id}`, {
+        status: !todo.status
+      })
+      .then(() => {
+        getTodoList(current.value, pageSize)
+      })
+  )
 }
 
 onMounted(() => {
