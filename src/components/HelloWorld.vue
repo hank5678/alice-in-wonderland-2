@@ -1,16 +1,10 @@
 <template>
   <div class="todobox">
-    
-    <!-- <div class="pagenate">
-      <a-pagination :current="current" :total="total" pageSize="5" @change="change" show-less-items />
-    </div> -->
-
-
-   
-    <h1 class="title">To-Do List</h1>
-    <div v-for="page in pagination">
-    <button @click="getTodoList(page.url)">{{ page.name }}</button>
+    <div class="pagenate">
+      <a-pagination :current="current" :total="total" :pageSize="pageSize" @change="change" />
     </div>
+
+    <h1 class="title">To-Do List</h1>
     <div style="margin-top: 15px">
       <input class="todoinput" v-model="userinput" placeholder="Enter a new task" v-on:keyup.enter="add()" />
     </div>
@@ -25,71 +19,34 @@
     <div style="margin-top: 15px">
       <img src="@/assets/logo.svg" alt="" />
     </div>
-
   </div>
-
-
-
-
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue"
 import axios from "axios"
 
-
-let current=ref(1)//預設當前頁數在第一頁
+let current = ref(1) //預設當前頁數在第一頁
 let todolist = ref([])
-let pagination = ref([])//放name跟url的陣列
 let userinput = ref("")
-let total=ref(0)
+let total = ref(0)
+let pageSize = 5
 
-// let getTodoList = (pageNumber =1) => {//預設當前頁數在第一頁
- 
-//   axios
-//     .get(`http://localhost:3000/todos?_page=${pageNumber}&_limit=4`)
-//     .then((res) => {
-//       console.log(res)
-//       todolist.value = res.data
-//       total.value=res.headers["x-total-count"]//取得總筆數
-      
-//     })
-//     .catch((err) => {
-//       alert("發生錯誤")
-//     })
-// }
-
-//不用取得總筆數
-let getTodoList = (url = 'http://localhost:3000/todos?_page=1&_limit=4') => {//page->當前頁數,limit->一頁顯示筆數
+let getTodoList = (page, pageSize) => {
   axios
-    .get(url)
+    .get("http://localhost:3000/todos", { params: { _page: page, _limit: pageSize } })
     .then((res) => {
-      console.log(res)
       todolist.value = res.data
-      // total.value=res.headers["x-total-count"]
-      let contents = res.headers.link.split(',');
-      pagination.value = [];//每次都要先把陣列清空,不然資料一直累計進去會出事..(按鈕變很多)
-      for(var i=0;i<contents.length;i++){
-          let name=contents[i].split(";")[1].split("=")[1].replaceAll("\"","")
-          let url=contents[i].split(";")[0].replace("<","").replace(">","")
-          console.log(name,url)
-          pagination.value.push({//把分割完的name跟url丟進pagination的陣列裡面
-            name:name,
-            url:url
-          })
-      }
+      total.value = res.headers["x-total-count"]
     })
     .catch((err) => {
       alert("發生錯誤")
     })
 }
 
-
-
-function change(page,pageSize){
-  console.log(page,pageSize)
-  current.value=page
-  getTodoList(page);
+function change(page, pageSize) {
+  getTodoList(page, pageSize)
+  current.value = page
 }
 
 function add() {
@@ -106,7 +63,7 @@ function add() {
     .then((res) => {
       if (res.status === 201) {
         userinput.value = ""
-        getTodoList()
+        getTodoList(current.value, pageSize)
       } else {
         alert("失敗")
       }
@@ -121,7 +78,7 @@ function remove(todo) {
     .delete(`http://localhost:3000/todos/${todo.id}`)
     .then((res) => {
       if (res.status === 200) {
-        getTodoList()
+        getTodoList(current.value, pageSize)
       } else {
         alert("失敗")
       }
@@ -138,7 +95,7 @@ function checked(todo) {
     })
     .then((res) => {
       if (res.status === 200) {
-        getTodoList()
+        getTodoList(current.value, pageSize)
       } else {
         alert("失敗")
       }
@@ -149,7 +106,7 @@ function checked(todo) {
 }
 
 onMounted(() => {
-  getTodoList()
+  getTodoList(current.value, pageSize)
 })
 </script>
 
@@ -214,10 +171,10 @@ img {
 .loading {
   font-size: 14px;
 }
-.pagenate{
+.pagenate {
   margin-top: 10px;
 }
-.pagenate>button{
+.pagenate > button {
   margin-left: 10px;
 }
 </style>
