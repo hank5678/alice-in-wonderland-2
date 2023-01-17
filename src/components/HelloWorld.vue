@@ -24,7 +24,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue"
-import axios from "axios"
+import axios from "@/utils/axios"
 
 let current = ref(1) //預設當前頁數在第一頁
 let todolist = ref([])
@@ -33,15 +33,10 @@ let total = ref(0)
 let pageSize = 5
 
 let getTodoList = (page, pageSize) => {
-  axios
-    .get("http://localhost:3000/todos", { params: { _page: page, _limit: pageSize } })
-    .then((res) => {
-      todolist.value = res.data
-      total.value = res.headers["x-total-count"]
-    })
-    .catch((err) => {
-      alert("發生錯誤")
-    })
+  axios.get("/todos", { params: { _page: page, _limit: pageSize } }).then((res) => {
+    todolist.value = res.data
+    total.value = res.headers["x-total-count"]
+  })
 }
 
 function change(page, pageSize) {
@@ -58,50 +53,25 @@ function add() {
     title: userinput.value,
     status: false
   }
-  axios
-    .post("http://localhost:3000/todos", data)
-    .then((res) => {
-      if (res.status === 201) {
-        userinput.value = ""
-        getTodoList(current.value, pageSize)
-      } else {
-        alert("失敗")
-      }
-    })
-    .catch(() => {
-      alert("發生錯誤")
-    })
+  axios.post("/todos", data).then(() => {
+    userinput.value = ""
+    getTodoList(current.value, pageSize)
+  })
 }
 
 function remove(todo) {
-  axios
-    .delete(`http://localhost:3000/todos/${todo.id}`)
-    .then((res) => {
-      if (res.status === 200) {
-        getTodoList(current.value, pageSize)
-      } else {
-        alert("失敗")
-      }
-    })
-    .catch(() => {
-      alert("發生錯誤")
-    })
+  axios.delete(`/todos/${todo.id}`).then(() => {
+    getTodoList(current.value, pageSize)
+  })
 }
 
 function checked(todo) {
   axios
-    .patch(`http://localhost:3000/todos/${todo.id}`, {
+    .patch(`/todos/${todo.id}`, {
       status: !todo.status
     })
-    .then((res) => {
-      if (res.status === 200) {
-        getTodoList(current.value, pageSize)
-      } else {
-        alert("失敗")
-      }
-    })
-    .catch(() => {
-      alert("發生錯誤")
+    .then(() => {
+      getTodoList(current.value, pageSize)
     })
 }
 
