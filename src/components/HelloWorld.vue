@@ -1,31 +1,30 @@
 <template>
   <div class="todobox">
-    
-    <!-- <div class="pagenate">
-      <a-pagination :current="current" :total="total" pageSize="5" @change="change" show-less-items />
-    </div> -->
-
-
-   
-    <h1 class="title">To-Do List</h1>
-    <div v-for="page in pagination">
-    <button @click="getTodoList(page.url)">{{ page.name }}</button>
+    <div class="pagenate">
+      <a-pagination :current="current" :total="total" :pageSize="pageSize" @change="change" show-less-items />
     </div>
-    <div style="margin-top: 15px">
-      <input class="todoinput" v-model="userinput" placeholder="Enter a new task" v-on:keyup.enter="add()" />
-    </div>
-    <div>
-      <div class="task" v-for="todo in todolist" :key="todo.id" style="margin-top: 15px">
-        <input class="todoinput1" @click="checked(todo)" :class="{ checked: todo.status }" v-model="todo.title" readonly="readonly" />
-        <i class="checkmark fa-solid fa-check" v-if="todo.status"></i>
-        <i class="xmark fa-regular fa-circle-xmark" @click="remove(todo)"></i>
+    <a-spin tip="Loading..." :spinning="loading" >
+      <h1 class="title">To-Do List</h1>
+      <div v-for="page in pagination">
+      <button @click="getTodoList(page.url)">{{ page.name }}</button>
       </div>
-    </div>
+      <div style="margin-top: 15px">
+        <input class="todoinput" v-model="userinput" placeholder="Enter a new task" v-on:keyup.enter="add()" />
+      </div>
+      <div>
+        <div class="task" v-for="todo in todolist" :key="todo.id" style="margin-top: 15px">
+          <input class="todoinput1" @click="checked(todo)" :class="{ checked: todo.status }" v-model="todo.title" readonly="readonly" />
+          <i class="checkmark fa-solid fa-check" v-if="todo.status"></i>
+          <i class="xmark fa-regular fa-circle-xmark" @click="remove(todo)"></i>
+        </div>
+      </div>
 
-    <div style="margin-top: 15px">
-      <img src="@/assets/logo.svg" alt="" />
-    </div>
+      <div style="margin-top: 15px">
+        <img src="@/assets/logo.svg" alt="" />
+      </div>  
+    </a-spin>
 
+ 
   </div>
 
 
@@ -43,46 +42,71 @@ let todolist = ref([])
 let pagination = ref([])//放name跟url的陣列
 let userinput = ref("")
 let total=ref(0)
+let pageSize=ref(5)
 
-// let getTodoList = (pageNumber =1) => {//預設當前頁數在第一頁
- 
-//   axios
-//     .get(`http://localhost:3000/todos?_page=${pageNumber}&_limit=4`)
-//     .then((res) => {
-//       console.log(res)
-//       todolist.value = res.data
-//       total.value=res.headers["x-total-count"]//取得總筆數
-      
-//     })
-//     .catch((err) => {
-//       alert("發生錯誤")
-//     })
-// }
+let loading=ref(false)
 
-//不用取得總筆數
-let getTodoList = (url = 'http://localhost:3000/todos?_page=1&_limit=4') => {//page->當前頁數,limit->一頁顯示筆數
+let getTodoList = (pageNumber =1) => {//預設當前頁數在第一頁
+ loading.value=true
   axios
-    .get(url)
+    .get(`http://localhost:3000/todos?`,{params:{_page:pageNumber,_limit:pageSize.value}})
     .then((res) => {
       console.log(res)
       todolist.value = res.data
-      // total.value=res.headers["x-total-count"]
-      let contents = res.headers.link.split(',');
-      pagination.value = [];//每次都要先把陣列清空,不然資料一直累計進去會出事..(按鈕變很多)
-      for(var i=0;i<contents.length;i++){
-          let name=contents[i].split(";")[1].split("=")[1].replaceAll("\"","")
-          let url=contents[i].split(";")[0].replace("<","").replace(">","")
-          console.log(name,url)
-          pagination.value.push({//把分割完的name跟url丟進pagination的陣列裡面
-            name:name,
-            url:url
-          })
-      }
+      total.value=Number(res.headers["x-total-count"])//取得總筆數
+      loading.value=false
     })
     .catch((err) => {
       alert("發生錯誤")
     })
 }
+
+// //不用取得總筆數
+// let getTodoList = (url = 'http://localhost:3000/todos?_page=1&_limit=4') => {//page->當前頁數,limit->一頁顯示筆數
+//   axios
+//     .get(url)
+//     .then((res) => {
+//       console.log(res)
+//       todolist.value = res.data
+//       // total.value=res.headers["x-total-count"]
+//       let contents = res.headers.link.split(',');
+//       pagination.value = [];//每次都要先把陣列清空,不然資料一直累計進去會出事..(按鈕變很多)
+//       // for(var i=0;i<contents.length;i++){
+       
+//       // }
+
+//       contents.forEach(x=>{
+//         let name=x.split(";")[1].split("=")[1].replaceAll("\"","")
+//           let url=x.split(";")[0].replace("<","").replace(">","")
+//           console.log(name,url)
+//           pagination.value.push({//把分割完的name跟url丟進pagination的陣列裡面
+//             name:name,
+//             url:url
+//           })
+//       })
+
+      // pagination.value = pagination.value.map(x=>{
+      //     let name=x.split(";")[1].split("=")[1].replaceAll("\"","")
+      //     let url=x.split(";")[0].replace("<","").replace(">","")
+      //     console.log(name,url)
+      //     let res = {//把分割完的name跟url丟進pagination的陣列裡面
+      //       name:name,
+      //       url:url
+      //     }
+      //    return res;
+      // })
+
+//       console.log(pagination)
+
+
+
+
+
+//     })
+//     .catch((err) => {
+//       alert("發生錯誤")
+//     })
+// }
 
 
 
